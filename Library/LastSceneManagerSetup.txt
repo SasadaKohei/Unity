@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/LeapMotion/Scenes/AllHandModels.unity
+  isLoaded: 1
+  isActive: 1
