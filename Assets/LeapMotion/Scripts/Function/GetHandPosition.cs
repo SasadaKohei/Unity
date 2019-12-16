@@ -23,7 +23,6 @@ public class GetHandPosition : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
     }
 
     // Update is called once per frame
@@ -38,7 +37,7 @@ public class GetHandPosition : MonoBehaviour
         string identifyHandFlag = "null";
         int fingerFlag = -1;
 
-
+        // 認識
         if(leftHand.Id != -1){
             identifyHandFlag = "LeftHand";
             foreach(var left_finger in leftFingers){
@@ -46,7 +45,6 @@ public class GetHandPosition : MonoBehaviour
                 setFingerPos(identifyHandFlag, left_finger.Id, left_finger.TipPosition);
             }
         }
-
         if(rightHand.Id != -1){
             identifyHandFlag = "RightHand";
             foreach(var right_finger in rightFingers){
@@ -54,12 +52,31 @@ public class GetHandPosition : MonoBehaviour
                 setFingerPos(identifyHandFlag, right_finger.Id, right_finger.TipPosition);
             }
         }
+
+        // 出力
         measurementsNum++;
-        if(measurementsNum < 201){
-            // dataを配列に格納
-            if(leftHand.Id != -1 && leftHand.Id == -1){}
-            else if(leftHand.Id == -1 && leftHand.Id != -1){}
-            else if(leftHand.Id == -1 && leftHand.Id == -1){}
+        // dataを配列に格納
+        if( 0<= measurementsNum && measurementsNum <= 100){
+            Debug.Log("待機中 :" + measurementsNum);
+        }
+        else if(100 < measurementsNum && measurementsNum <= 300){
+            if (100 < measurementsNum && measurementsNum < 175) 
+                Debug.Log("手をパー  :" + measurementsNum);
+            else Debug.Log("指文字を測定中 : " + measurementsNum);
+            // 右手の手話のみ
+            if(rightHand.Id != -1 && leftHand.Id == -1){
+                float[] rightHandData = new float[21];
+                rightHandData = SetData(rightHand.PalmPosition,R_thumb, R_index, R_middle, R_ring, R_pinky,rightHand.PalmNormal);
+            }
+            // 左手の手話のみ
+            else if(rightHand.Id == -1 && leftHand.Id != -1){
+                float[] leftHandData = new float[21];
+                leftHandData = SetData(leftHand.PalmPosition,L_thumb, L_index, L_middle, L_ring, L_pinky,leftHand.PalmNormal);
+            }
+            // 両手の手話のみ
+            else if(rightHand.Id == -1 && leftHand.Id == -1){
+
+            }
         }
         else{
             measurementsNum = 0;
@@ -132,5 +149,40 @@ public class GetHandPosition : MonoBehaviour
                     break;
             }
         }
+    }
+
+    //取得したベクトルを全て配列に格納
+    float [] SetData(Leap.Vector hand_pos, Leap.Vector thumb, Leap.Vector index, Leap.Vector middle, Leap.Vector ring, Leap.Vector pinky, Leap.Vector vec_hand){
+        //毎フレームごとに必要なデータを格納する配列
+        float[] data = new float[21];
+        //手の中心座標
+        data[0] = hand_pos.x;
+        data[1] = hand_pos.y;
+        data[2] = hand_pos.z;
+        //親指ベクトル
+        data[3] = thumb.x;
+        data[4] = thumb.y;
+        data[5] = thumb.z;
+        //人差し指ベクトル
+        data[6] = index.x;
+        data[7] = index.y;
+        data[8] = index.z;
+        //中指ベクトル
+        data[9] = middle.x;
+        data[10] = middle.y;
+        data[11] = middle.z;
+        //薬指ベクトル
+        data[12] = ring.x;
+        data[13] = ring.y;
+        data[14] = ring.z;
+        //小指ベクトル
+        data[15] = pinky.x;
+        data[16] = pinky.y;
+        data[17] = pinky.z;
+        //手の平法線
+        data[18] = vec_hand.x;
+        data[19] = vec_hand.y;
+        data[20] = vec_hand.z;
+        return data;
     }
 }
