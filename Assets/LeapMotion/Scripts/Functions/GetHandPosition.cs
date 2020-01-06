@@ -9,7 +9,10 @@ public class GetHandPosition : MonoBehaviour
 
     Controller controller = new Controller();
     public int count = 0;
-    // 一時保存用
+    public int rightHandCount = 0;
+    public int leftHandCount = 0;
+
+    // 座標値保存用
     // 右手
     public static Leap.Vector R_hand_pos = new Leap.Vector();
     public static Leap.Vector R_hand_vec = new Leap.Vector();
@@ -26,6 +29,8 @@ public class GetHandPosition : MonoBehaviour
     public static Leap.Vector L_middle = new Leap.Vector();
     public static Leap.Vector L_ring = new Leap.Vector();
     public static Leap.Vector L_pinky = new Leap.Vector();
+    // 手判別フラグ
+    public static String identifyHandFlag;
 
     // Start is called before the first frame update
     void Start()
@@ -38,6 +43,7 @@ public class GetHandPosition : MonoBehaviour
         Frame frame = controller.Frame();
         HandList hands = frame.Hands;
         Hand leftHand = null, rightHand = null;
+        identifyHandFlag = "";
 
         // 右手、左手を取得
         if (hands.Count == 1){
@@ -57,13 +63,17 @@ public class GetHandPosition : MonoBehaviour
         // 右手のみの場合
         if (rightHand != null && leftHand == null){
             outputRightHand(rightHand);
+            rightHandCount++;
         }
         else if (rightHand == null && leftHand != null){
             outputLeftHand(leftHand);
+            leftHandCount++;
         }
         // // 両手の場合
         else if (rightHand != null && leftHand != null){
             outputBothHands(rightHand, leftHand);
+            rightHandCount++;
+            leftHandCount++;
         }
 
         count++;
@@ -71,6 +81,8 @@ public class GetHandPosition : MonoBehaviour
             Debug.Log("計測中");
         }else if (count <= 201){
             count = 0;
+            rightHandCount = 0;
+            leftHandCount = 0;
         }
     }
 
@@ -78,6 +90,8 @@ public class GetHandPosition : MonoBehaviour
     public void outputRightHand(Hand rightHand)
     {
         foreach (Finger finger in rightHand.Fingers){
+            identifyHandFlag = "RightHand";
+            setFingerPos(identifyHandFlag, finger.Id, finger.TipPosition);
             Debug.Log("id :" + finger.Id +  ", 右手指 :" + finger.Type());
         }
         Debug.Log("____________");
@@ -173,5 +187,51 @@ public class GetHandPosition : MonoBehaviour
                 default:
                     break;
             }
+        }
+    }
+
+    //取得したベクトルを全て配列に格納
+    float [] SetData(Leap.Vector hand_pos, Leap.Vector thumb, Leap.Vector index, Leap.Vector middle, Leap.Vector ring, Leap.Vector pinky, Leap.Vector vec_hand){
+        //毎フレームごとに必要なデータを格納する配列
+        float[] data = new float[25];
+        //手の中心座標
+        data[0] = hand_pos.x;
+        data[1] = hand_pos.y;
+        data[2] = hand_pos.z;
+        //親指ベクトル
+        data[3] = thumb.x - hand_pos.x;
+        data[4] = thumb.y - hand_pos.y;
+        data[5] = thumb.z - hand_pos.z;
+        //人差し指ベクトル
+        data[6] = index.x - hand_pos.x;
+        data[7] = index.y - hand_pos.y;
+        data[8] = index.z - hand_pos.z;
+        //中指ベクトル
+        data[9] = middle.x - hand_pos.x;
+        data[10] = middle.y - hand_pos.y;
+        data[11] = middle.z - hand_pos.z;
+        //薬指ベクトル
+        data[12] = ring.x - hand_pos.x;
+        data[13] = ring.y - hand_pos.y;
+        data[14] = ring.z - hand_pos.z;
+        //小指ベクトル
+        data[15] = pinky.x - hand_pos.x;
+        data[16] = pinky.y - hand_pos.y;
+        data[17] = pinky.z - hand_pos.z;
+        //手の平法線
+        data[18] = vec_hand.x;
+        data[19] = vec_hand.y;
+        data[20] = vec_hand.z;
+        // 人差し指から中指
+        data[21] = middle.x - index.x;
+        data[22] = middle.y - index.y;
+        data[23] = middle.z - index.z;
+        // 指先の距離
+        data[24] = (float)Math.Sqrt(System.Math.Pow(data[3]) + System.Math.Pow(data[4]) + System.Math.Pow(data[5]));
+        data[25] = (float)Math.Sqrt(System.Math.Pow(data[6]) + System.Math.Pow(data[7]) + System.Math.Pow(data[8]));
+        data[26] = (float)Math.Sqrt(System.Math.Pow(data[9]) + System.Math.Pow(data[10]) + System.Math.Pow(data[11]));
+        data[27] = (float)Math.Sqrt(System.Math.Pow(data[12]) + System.Math.Pow(data[13]) + System.Math.Pow(data[14]));
+        data[28] = (float)Math.Sqrt(System.Math.Pow(data[15]) + System.Math.Pow(data[16]) + System.Math.Pow(data[17]));
+        return data;
     }
 }
